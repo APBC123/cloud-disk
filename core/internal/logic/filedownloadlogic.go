@@ -9,6 +9,7 @@ import (
 	"context"
 	"errors"
 	"github.com/zeromicro/go-zero/core/logx"
+	"log"
 	"net"
 	"net/http"
 	"time"
@@ -86,10 +87,7 @@ func (l *FileDownloadLogic) FileDownload(req *types.FileDownloadRequest, userIde
 			mux := http.NewServeMux()
 			mux.Handle("/", http.FileServer(http.Dir(define.ServerDownloadPath+"\\"+rp.Name[:len(rp.Name)-len(rp.Ext)])))
 			server.Handler = mux
-			err = server.ListenAndServe()
-			if err != nil {
-				return
-			}
+			log.Fatal(server.ListenAndServe())
 			<-GetPort
 		}(port, rp)
 	}(rp)
