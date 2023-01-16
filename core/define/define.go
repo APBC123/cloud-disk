@@ -23,8 +23,8 @@ var CodeLength = 6
 var CodeExpire = 300
 
 // 腾讯云对象储存
-var TencentSecretID = os.Getenv("TencentSecretID")   //"AKID3xeQxGLBoGVWHo6ANM7e1A4kBNK4a6NR"
-var TencentSecretKey = os.Getenv("TencentSecretKey") //"sVt42oLiwzqSr20jDTUJySlskPqHWYQ6"
+var TencentSecretID = os.Getenv("TencentSecretID")   
+var TencentSecretKey = os.Getenv("TencentSecretKey") 
 var CosBucket = "https://2290312980-1316376654.cos.ap-nanjing.myqcloud.com"
 
 // 分页的默认参数
