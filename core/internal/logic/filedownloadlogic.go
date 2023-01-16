@@ -7,6 +7,7 @@ import (
 	"cloud-disk/core/internal/types"
 	"cloud-disk/core/models"
 	"context"
+	"errors"
 	"github.com/zeromicro/go-zero/core/logx"
 	"net"
 	"net/http"
@@ -30,7 +31,26 @@ func NewFileDownloadLogic(ctx context.Context, svcCtx *svc.ServiceContext) *File
 var ToServerDone = make(chan error)
 var GetPort = make(chan string)
 
-func (l *FileDownloadLogic) FileDownload(rp *models.RepositoryPool) (resp *types.FileDownloadReply, err error) {
+func (l *FileDownloadLogic) FileDownload(req *types.FileDownloadRequest, userIdentity string) (resp *types.FileDownloadReply, err error) {
+	ur := new(models.UserRepository)
+	has, err := l.svcCtx.Engine.Where("identity = ? AND user_identity = ?", req.User_repository_identity, userIdentity).Get(ur)
+	if err != nil {
+		return nil, err
+	}
+	if !has {
+		err = errors.New("用户库中无对应文件")
+		return nil, err
+	}
+	//
+	rp := new(models.RepositoryPool)
+	has, err = l.svcCtx.Engine.Where("identity = ?", ur.RepositoryIdentity).Get(rp)
+	if err != nil {
+		return nil, err
+	}
+	if !has {
+		err = errors.New("文件不存在")
+		return nil, err
+	}
 	resp = new(types.FileDownloadReply)
 	resp.Ext = rp.Ext
 	resp.Name = rp.Name
