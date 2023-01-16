@@ -12,7 +12,7 @@ type UserClaim struct {
 	jwt.StandardClaims
 }
 
-var MailPassword = os.Getenv("MailPassword") //"fegqudoaajcaebjc"
+var MailPassword = os.Getenv("MailPassword") 
 
 var JwtKey = "cloud-disk-key"
 
