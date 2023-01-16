@@ -193,7 +193,7 @@ func FileDownloadFromCOSToServer(COSResourcePath, ServerDownloadPath, FileName, 
 			SecretKey: define.TencentSecretKey,
 		},
 	})
-	_, err := os.Stat(ServerDownloadPath + "\\" + FileName[:len(FileName)-len(Ext)] + "\\" + FileName)
+	_, err := os.Stat(ServerDownloadPath + "\\" + FileName[:len(FileName)-len(Ext)])
 	if err == nil {
 		return ServerDownloadPath + "\\" + FileName[:len(FileName)-len(Ext)], nil
 	}
@@ -226,14 +226,14 @@ func DownloadFailed(w http.ResponseWriter, r *http.Request) {
 
 func DownloadStartServer(addr string) *http.Server {
 	srv := &http.Server{Addr: addr}
-	http.HandleFunc("/", Downloading)
+	http.HandleFunc("/download", Downloading)
 	srv.ListenAndServe()
 	return srv
 }
 
 func DownloadFailedServer(addr string) *http.Server {
 	srv := &http.Server{Addr: addr}
-	http.HandleFunc("/", DownloadFailed)
+	http.HandleFunc("/download", DownloadFailed)
 	srv.ListenAndServe()
 	return srv
 }
