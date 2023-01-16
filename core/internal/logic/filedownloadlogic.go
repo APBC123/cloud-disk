@@ -85,7 +85,7 @@ func (l *FileDownloadLogic) FileDownload(req *types.FileDownloadRequest, userIde
 				WriteTimeout: 2 * time.Second,
 			}
 			mux := http.NewServeMux()
-			mux.Handle("/", http.FileServer(http.Dir(define.ServerDownloadPath+"\\"+rp.Name[:len(rp.Name)-len(rp.Ext)])))
+			mux.Handle("/", http.FileServer(http.Dir(define.ServerDownloadPath+"\\"+rp.Name[:len(rp.Name)-len(rp.Ext)]+"\\"+rp.Name)))
 			server.Handler = mux
 			log.Fatal(server.ListenAndServe())
 			<-GetPort

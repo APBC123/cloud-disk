@@ -193,7 +193,7 @@ func FileDownloadFromCOSToServer(COSResourcePath, ServerDownloadPath, FileName, 
 			SecretKey: define.TencentSecretKey,
 		},
 	})
-	_, err := os.Stat(ServerDownloadPath + "\\" + FileName[:len(FileName)-len(Ext)])
+	_, err := os.Stat(ServerDownloadPath + "\\" + FileName[:len(FileName)-len(Ext)] + "\\" + FileName)
 	if err == nil {
 		return ServerDownloadPath + "\\" + FileName[:len(FileName)-len(Ext)], nil
 	}
