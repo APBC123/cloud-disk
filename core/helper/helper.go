@@ -216,6 +216,7 @@ func FileDownloadFromCOSToServer(COSResourcePath, ServerDownloadPath, FileName s
 	return filepath, nil
 }
 
+// 文件由本地服务器下载到客户端
 func FileDownloadFromServerToClient(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Printf("download url=%s \n", r.RequestURI)
@@ -270,6 +271,7 @@ func FileDownloadFromServerToClient(w http.ResponseWriter, r *http.Request) {
 
 var cond = sync.NewCond(&sync.Mutex{})
 
+// 最终调用的下载模块
 func Download(rp *models.RepositoryPool, port string) {
 	listener, err := net.Listen("tcp", port)
 	if err != nil {
