@@ -182,7 +182,7 @@ func CosPartUploadComplete(key, uploadId string, co []cos.Object) error {
 }
 
 // 文件由腾讯云下载到后端服务器
-func FileDownloadFromCOSToServer(COSResourcePath, ServerDownloadPath, FileName, Ext string) (string, error) {
+func FileDownloadFromCOSToServer(COSResourcePath, ServerDownloadPath, FileName string) (string, error) {
 	u, _ := url.Parse(define.CosBucket)
 	b := &cos.BaseURL{BucketURL: u}
 	client := cos.NewClient(b, &http.Client{
@@ -217,15 +217,13 @@ func FileDownloadFromServerToClient(w http.ResponseWriter, r *http.Request) {
 
 	filename := r.RequestURI[1:]
 	//对url进行解码时可用
-	//Url, err := url.QueryUnescape(filename)
-	/*
-		if err != nil {
-			w.Write([]byte(err.Error()))
-			return
-		}
-	*/
+	Url, err := url.QueryUnescape(filename)
+	if err != nil {
+		w.Write([]byte(err.Error()))
+		return
+	}
 
-	f, err := os.Open(define.ServerDownloadPath + "\\" + filename) //
+	f, err := os.Open(define.ServerDownloadPath + "\\" + Url) //
 	if err != nil {
 		w.Write([]byte(err.Error()))
 		return

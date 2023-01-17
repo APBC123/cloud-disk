@@ -12,6 +12,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"net/url"
 	"time"
 )
 
@@ -54,7 +55,7 @@ func (l *FileDownloadLogic) FileDownload(req *types.FileDownloadRequest, userIde
 	}
 	resp = new(types.FileDownloadReply)
 	resp.Ext = rp.Ext
-	resp.Name = rp.Name
+	resp.FileURL = url.QueryEscape(rp.Name) //对filename进行URL编码
 	resp.Size = rp.Size
 	resp.Hash = rp.Hash
 	//var wg sync.WaitGroup
@@ -68,7 +69,7 @@ func (l *FileDownloadLogic) FileDownload(req *types.FileDownloadRequest, userIde
 		port := listener.Addr().String()
 		port = port[len("[::]"):]
 		GetPort <- port
-		_, err = helper.FileDownloadFromCOSToServer(rp.Path, define.ServerDownloadPath, rp.Name, rp.Ext)
+		_, err = helper.FileDownloadFromCOSToServer(rp.Path, define.ServerDownloadPath, rp.Ext)
 		ToServerDone <- port
 	}(rp)
 

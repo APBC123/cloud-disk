@@ -6,11 +6,11 @@ type FileDownloadRequest struct {
 }
 
 type FileDownloadReply struct {
-	Name string `json:"name"`
-	Size int64  `json:"size"`
-	Ext  string `json:"ext"`
-	Hash string `json:"hash"`
-	Port string `json:"port"`
+	FileURL string `json:"fileUrl"`
+	Size    int64  `json:"size"`
+	Ext     string `json:"ext"`
+	Hash    string `json:"hash"`
+	Port    string `json:"port"`
 }
 
 type FileUploadChunkCompleteRequest struct {
