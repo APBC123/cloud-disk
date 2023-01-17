@@ -10,7 +10,6 @@ import (
 	"github.com/zeromicro/go-zero/core/logx"
 	"net"
 	"net/url"
-	"sync"
 )
 
 type FileDownloadLogic struct {
@@ -26,8 +25,6 @@ func NewFileDownloadLogic(ctx context.Context, svcCtx *svc.ServiceContext) *File
 		svcCtx: svcCtx,
 	}
 }
-
-var mtx sync.Mutex
 
 func (l *FileDownloadLogic) FileDownload(req *types.FileDownloadRequest, userIdentity string) (resp *types.FileDownloadReply, err error) {
 	ur := new(models.UserRepository)
@@ -55,7 +52,6 @@ func (l *FileDownloadLogic) FileDownload(req *types.FileDownloadRequest, userIde
 	resp.Size = rp.Size
 	resp.Hash = rp.Hash
 
-	mtx.Lock()
 	listener, err := net.Listen("tcp", ":0") //系统自动分配一个端口号
 	if err != nil {
 		return
@@ -68,7 +64,6 @@ func (l *FileDownloadLogic) FileDownload(req *types.FileDownloadRequest, userIde
 		return
 	}
 	go helper.Download(rp, port)
-	mtx.Unlock()
 	//var wg sync.WaitGroup
 	//index := strings.Trim(rp.Name, " ")
 	/*

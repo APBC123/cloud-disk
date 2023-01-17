@@ -24,6 +24,7 @@ import (
 	"path"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -246,6 +247,8 @@ func FileDownloadFromServerToClient(w http.ResponseWriter, r *http.Request) {
 	io.Copy(w, f)
 }
 
+var mtx sync.Mutex
+
 func Download(rp *models.RepositoryPool, port string) {
 	listener, err := net.Listen("tcp", port)
 	if err != nil {
@@ -263,6 +266,8 @@ func Download(rp *models.RepositoryPool, port string) {
 		mux.Handle("/", http.FileServer(http.Dir(define.ServerDownloadPath+"\\"+rp.Name[:len(rp.Name)-len(rp.Ext)])))
 		server.Handler = mux
 	*/
+	mtx.Lock()
 	http.HandleFunc("/", FileDownloadFromServerToClient)
 	log.Fatal(server.ListenAndServe())
+	mtx.Unlock()
 }
