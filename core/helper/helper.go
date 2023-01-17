@@ -228,6 +228,7 @@ func FileDownloadFromServerToClient(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	mtx.Lock()
 	f, err := os.Open(define.ServerDownloadPath + "\\" + Url) //
 	if err != nil {
 		w.Write([]byte(err.Error()))
@@ -239,12 +240,17 @@ func FileDownloadFromServerToClient(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(err.Error()))
 		return
 	}
+	mtx.Unlock()
 
 	w.Header().Set("Content-Disposition", "attachment; filename="+filename)
 	w.Header().Set("Content-Type", "application/octet-stream")
 	w.Header().Set("Content-Length", strconv.FormatInt(info.Size(), 10))
+
+	mtx.Lock()
 	f.Seek(0, 0)
 	io.Copy(w, f)
+	mtx.Unlock()
+
 }
 
 var mtx sync.Mutex
@@ -266,8 +272,8 @@ func Download(rp *models.RepositoryPool, port string) {
 		mux.Handle("/", http.FileServer(http.Dir(define.ServerDownloadPath+"\\"+rp.Name[:len(rp.Name)-len(rp.Ext)])))
 		server.Handler = mux
 	*/
-	mtx.Lock()
-	http.HandleFunc("/", FileDownloadFromServerToClient)
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", FileDownloadFromServerToClient)
+	server.Handler = mux
 	log.Fatal(server.ListenAndServe())
-	mtx.Unlock()
 }
