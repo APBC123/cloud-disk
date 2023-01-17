@@ -74,7 +74,10 @@ func (l *FileDownloadLogic) FileDownload(req *types.FileDownloadRequest, userIde
 			WriteTimeout: 2 * time.Second,
 		}
 		http.HandleFunc("/", helper.FileDownloadFromServerToClient)
-		server.ListenAndServe()
+		err = server.ListenAndServe()
+		if err != nil {
+			return
+		}
 	}(rp)
 
 	resp.Port = <-GetPort
