@@ -3,6 +3,7 @@ package helper
 import (
 	"bytes"
 	"cloud-disk/core/define"
+	"cloud-disk/core/models"
 	"context"
 	"crypto/md5"
 	"crypto/tls"
@@ -13,7 +14,9 @@ import (
 	uuid "github.com/satori/go.uuid"
 	"github.com/tencentyun/cos-go-sdk-v5"
 	"io"
+	"log"
 	"math/rand"
+	"net"
 	"net/http"
 	"net/smtp"
 	"net/url"
@@ -241,4 +244,27 @@ func FileDownloadFromServerToClient(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Length", strconv.FormatInt(info.Size(), 10))
 	f.Seek(0, 0)
 	io.Copy(w, f)
+}
+
+func Download(rp *models.RepositoryPool) error {
+	listener, err := net.Listen("tcp", ":9000") //系统自动分配一个端口号
+	if err != nil {
+		return err
+	}
+	port := listener.Addr().String()
+	port = port[len("[::]"):]
+	_, err = FileDownloadFromCOSToServer(rp.Path, define.ServerDownloadPath, rp.Ext)
+	server := &http.Server{
+		Addr:         "127.0.0.1" + port,
+		ReadTimeout:  4800 * time.Second,
+		WriteTimeout: 4800 * time.Second,
+	}
+	/*
+		mux := http.NewServeMux()
+		mux.Handle("/", http.FileServer(http.Dir(define.ServerDownloadPath+"\\"+rp.Name[:len(rp.Name)-len(rp.Ext)])))
+		server.Handler = mux
+	*/
+	http.HandleFunc("/", FileDownloadFromServerToClient)
+	log.Fatal(server.ListenAndServe())
+	return nil
 }
