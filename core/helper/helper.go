@@ -213,7 +213,6 @@ func FileDownloadFromCOSToServer(COSResourcePath, ServerDownloadPath, FileName s
 }
 
 func FileDownloadFromServerToClient(w http.ResponseWriter, r *http.Request) {
-
 	fmt.Printf("download url=%s \n", r.RequestURI)
 
 	filename := r.RequestURI[1:]
