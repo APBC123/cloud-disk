@@ -12,6 +12,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"net/url"
 	"time"
 )
 
@@ -29,7 +30,7 @@ func NewFileDownloadLogic(ctx context.Context, svcCtx *svc.ServiceContext) *File
 	}
 }
 
-var ToServerDone = make(chan string)
+var ToServerDone = make(chan error)
 var GetPort = make(chan string)
 
 func (l *FileDownloadLogic) FileDownload(req *types.FileDownloadRequest, userIdentity string) (resp *types.FileDownloadReply, err error) {
@@ -54,12 +55,9 @@ func (l *FileDownloadLogic) FileDownload(req *types.FileDownloadRequest, userIde
 	}
 	resp = new(types.FileDownloadReply)
 	resp.Ext = rp.Ext
-	resp.Name = rp.Name
+	resp.FileURL = url.QueryEscape(rp.Name)
 	resp.Size = rp.Size
 	resp.Hash = rp.Hash
-	//var wg sync.WaitGroup
-	//index := strings.Trim(rp.Name, " ")
-
 	go func(rp *models.RepositoryPool) {
 		listener, err := net.Listen("tcp", ":0") //系统自动分配一个端口号
 		if err != nil {
@@ -68,23 +66,26 @@ func (l *FileDownloadLogic) FileDownload(req *types.FileDownloadRequest, userIde
 		port := listener.Addr().String()
 		port = port[len("[::]"):]
 		GetPort <- port
-		_, err = helper.FileDownloadFromCOSToServer(rp.Path, define.ServerDownloadPath, rp.Name, rp.Ext)
-		ToServerDone <- port
+		_, err = helper.FileDownloadFromCOSToServer(rp.Path, define.ServerDownloadPath, rp.Name)
+		if err != nil {
+			return
+		}
+		ToServerDone <- err
+		return
 	}(rp)
-
 	resp.Port = <-GetPort
-
-	go func(rp *models.RepositoryPool) {
-		port := <-ToServerDone
+	go func(port string) {
+		err = <-ToServerDone
+		if err != nil {
+			return
+		}
 		server := &http.Server{
 			Addr:         "127.0.0.1" + port,
 			ReadTimeout:  2 * time.Second,
 			WriteTimeout: 2 * time.Second,
 		}
-		mux := http.NewServeMux()
-		mux.Handle("/", http.FileServer(http.Dir(define.ServerDownloadPath+"\\"+rp.Name[:len(rp.Name)-len(rp.Ext)])))
-		server.Handler = mux
+		http.HandleFunc("/", helper.FileDownloadFromServerToClient)
 		log.Fatal(server.ListenAndServe())
-	}(rp)
+	}(resp.Port)
 	return
 }

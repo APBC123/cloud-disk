@@ -3,7 +3,6 @@ package helper
 import (
 	"bytes"
 	"cloud-disk/core/define"
-	"cloud-disk/core/models"
 	"context"
 	"crypto/md5"
 	"crypto/tls"
@@ -15,7 +14,6 @@ import (
 	"github.com/tencentyun/cos-go-sdk-v5"
 	"io"
 	"math/rand"
-	"net"
 	"net/http"
 	"net/smtp"
 	"net/url"
@@ -184,7 +182,7 @@ func CosPartUploadComplete(key, uploadId string, co []cos.Object) error {
 }
 
 // 文件由腾讯云下载到后端服务器
-func FileDownloadFromCOSToServer(COSResourcePath, ServerDownloadPath, FileName, Ext string) (string, error) {
+func FileDownloadFromCOSToServer(COSResourcePath, ServerDownloadPath, FileName string) (string, error) {
 	u, _ := url.Parse(define.CosBucket)
 	b := &cos.BaseURL{BucketURL: u}
 	client := cos.NewClient(b, &http.Client{
@@ -193,16 +191,14 @@ func FileDownloadFromCOSToServer(COSResourcePath, ServerDownloadPath, FileName, 
 			SecretKey: define.TencentSecretKey,
 		},
 	})
-	_, err := os.Stat(ServerDownloadPath + "\\" + FileName[:len(FileName)-len(Ext)])
+	//判断文件是否存在于本地服务器上
+	_, err := os.Stat(ServerDownloadPath + "\\" + FileName)
 	if err == nil {
-		return ServerDownloadPath + "\\" + FileName[:len(FileName)-len(Ext)], nil
+		return ServerDownloadPath + "\\" + FileName, nil
 	}
-	err = os.Mkdir(ServerDownloadPath+"\\"+FileName[:len(FileName)-len(Ext)], 0777)
-	if err != nil {
-		panic(err)
-	}
+	//文件不再本地服务器上则从COS上取回文件
 	key := COSResourcePath[len(define.CosBucket)+1:]
-	filepath := ServerDownloadPath + "\\" + FileName[:len(FileName)-len(Ext)] + "\\" + FileName
+	filepath := ServerDownloadPath + "\\" + FileName
 	opt := &cos.MultiDownloadOptions{
 		ThreadPoolSize: 8,
 		CheckPoint:     true,
@@ -216,30 +212,33 @@ func FileDownloadFromCOSToServer(COSResourcePath, ServerDownloadPath, FileName, 
 	return filepath, nil
 }
 
-// 取回文件时的提示信息
-func Downloading(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "文件取回中，请稍后")
-}
-func DownloadFailed(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "取回文件失败，请重试")
-}
+func FileDownloadFromServerToClient(w http.ResponseWriter, r *http.Request) {
 
-func DownloadStartServer(addr string) *http.Server {
-	srv := &http.Server{Addr: addr}
-	http.HandleFunc("/download", Downloading)
-	srv.ListenAndServe()
-	return srv
-}
+	fmt.Printf("download url=%s \n", r.RequestURI)
 
-func DownloadFailedServer(addr string) *http.Server {
-	srv := &http.Server{Addr: addr}
-	http.HandleFunc("/download", DownloadFailed)
-	srv.ListenAndServe()
-	return srv
-}
+	filename := r.RequestURI[1:]
+	//对url进行解码时可用
+	Url, err := url.QueryUnescape(filename)
+	if err != nil {
+		w.Write([]byte(err.Error()))
+		return
+	}
 
-func DownloadFromServerToClient(rp *models.RepositoryPool, server net.Listener) error {
-	http.Handle("/", http.FileServer(http.Dir(define.ServerDownloadPath+"\\"+rp.Name[:len(rp.Name)-len(rp.Ext)])))
-	err := http.Serve(server, nil)
-	return err
+	f, err := os.Open(define.ServerDownloadPath + "\\" + Url) //
+	if err != nil {
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	info, err := f.Stat()
+	if err != nil {
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	w.Header().Set("Content-Disposition", "attachment; filename="+filename)
+	w.Header().Set("Content-Type", "application/octet-stream")
+	w.Header().Set("Content-Length", strconv.FormatInt(info.Size(), 10))
+	f.Seek(0, 0)
+	io.Copy(w, f)
 }
