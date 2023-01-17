@@ -30,7 +30,7 @@ func NewFileDownloadLogic(ctx context.Context, svcCtx *svc.ServiceContext) *File
 	}
 }
 
-var ToServerDone = make(chan string)
+var ToServerDone = make(chan string, 20000)
 var GetPort = make(chan string)
 
 func (l *FileDownloadLogic) FileDownload(req *types.FileDownloadRequest, userIdentity string) (resp *types.FileDownloadReply, err error) {
@@ -76,19 +76,26 @@ func (l *FileDownloadLogic) FileDownload(req *types.FileDownloadRequest, userIde
 	resp.Port = <-GetPort
 
 	go func(rp *models.RepositoryPool) {
-		port := <-ToServerDone
-		server := &http.Server{
-			Addr:         "127.0.0.1" + port,
-			ReadTimeout:  4800 * time.Second,
-			WriteTimeout: 4800 * time.Second,
+		select {
+		case port := <-ToServerDone:
+			{
+				server := &http.Server{
+					Addr:         "127.0.0.1" + port,
+					ReadTimeout:  4800 * time.Second,
+					WriteTimeout: 4800 * time.Second,
+				}
+				/*
+					mux := http.NewServeMux()
+					mux.Handle("/", http.FileServer(http.Dir(define.ServerDownloadPath+"\\"+rp.Name[:len(rp.Name)-len(rp.Ext)])))
+					server.Handler = mux
+				*/
+				http.HandleFunc("/", helper.FileDownloadFromServerToClient)
+				log.Fatal(server.ListenAndServe())
+
+			}
+		default:
+			return
 		}
-		/*
-			mux := http.NewServeMux()
-			mux.Handle("/", http.FileServer(http.Dir(define.ServerDownloadPath+"\\"+rp.Name[:len(rp.Name)-len(rp.Ext)])))
-			server.Handler = mux
-		*/
-		http.HandleFunc("/", helper.FileDownloadFromServerToClient)
-		log.Fatal(server.ListenAndServe())
 	}(rp)
 	return
 }
