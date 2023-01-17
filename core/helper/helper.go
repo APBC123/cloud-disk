@@ -213,31 +213,33 @@ func FileDownloadFromCOSToServer(COSResourcePath, ServerDownloadPath, FileName s
 }
 
 func FileDownloadFromServerToClient(w http.ResponseWriter, r *http.Request) {
-	fmt.Printf("download url=%s \n", r.RequestURI)
+	go func(w http.ResponseWriter, r *http.Request) {
+		fmt.Printf("download url=%s \n", r.RequestURI)
 
-	filename := r.RequestURI[1:]
-	//对url进行解码时可用
-	Url, err := url.QueryUnescape(filename)
-	if err != nil {
-		w.Write([]byte(err.Error()))
-		return
-	}
+		filename := r.RequestURI[1:]
+		//对url进行解码时可用
+		Url, err := url.QueryUnescape(filename)
+		if err != nil {
+			w.Write([]byte(err.Error()))
+			return
+		}
 
-	f, err := os.Open(define.ServerDownloadPath + "\\" + Url) //
-	if err != nil {
-		w.Write([]byte(err.Error()))
-		return
-	}
+		f, err := os.Open(define.ServerDownloadPath + "\\" + Url) //
+		if err != nil {
+			w.Write([]byte(err.Error()))
+			return
+		}
 
-	info, err := f.Stat()
-	if err != nil {
-		w.Write([]byte(err.Error()))
-		return
-	}
+		info, err := f.Stat()
+		if err != nil {
+			w.Write([]byte(err.Error()))
+			return
+		}
 
-	w.Header().Set("Content-Disposition", "attachment; filename="+filename)
-	w.Header().Set("Content-Type", "application/octet-stream")
-	w.Header().Set("Content-Length", strconv.FormatInt(info.Size(), 10))
-	f.Seek(0, 0)
-	io.Copy(w, f)
+		w.Header().Set("Content-Disposition", "attachment; filename="+filename)
+		w.Header().Set("Content-Type", "application/octet-stream")
+		w.Header().Set("Content-Length", strconv.FormatInt(info.Size(), 10))
+		f.Seek(0, 0)
+		io.Copy(w, f)
+	}(w, r)
 }
