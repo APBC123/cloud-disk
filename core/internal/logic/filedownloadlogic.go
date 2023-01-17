@@ -70,13 +70,6 @@ func (l *FileDownloadLogic) FileDownload(req *types.FileDownloadRequest, userIde
 		port = port[len("[::]"):]
 		GetPort <- port
 		_, err = helper.FileDownloadFromCOSToServer(rp.Path, define.ServerDownloadPath, rp.Ext)
-		ToServerDone <- port
-	}(rp)
-
-	resp.Port = <-GetPort
-
-	go func(rp *models.RepositoryPool) {
-		port := <-ToServerDone
 		server := &http.Server{
 			Addr:         "127.0.0.1" + port,
 			ReadTimeout:  4800 * time.Second,
@@ -89,6 +82,25 @@ func (l *FileDownloadLogic) FileDownload(req *types.FileDownloadRequest, userIde
 		*/
 		http.HandleFunc("/", helper.FileDownloadFromServerToClient)
 		log.Fatal(server.ListenAndServe())
+		//ToServerDone <- port
 	}(rp)
+
+	resp.Port = <-GetPort
+
+	/*go func(rp *models.RepositoryPool) {
+		port := <-ToServerDone
+		server := &http.Server{
+			Addr:         "127.0.0.1" + port,
+			ReadTimeout:  4800 * time.Second,
+			WriteTimeout: 4800 * time.Second,
+		}
+		/*
+			mux := http.NewServeMux()
+			mux.Handle("/", http.FileServer(http.Dir(define.ServerDownloadPath+"\\"+rp.Name[:len(rp.Name)-len(rp.Ext)])))
+			server.Handler = mux
+
+		http.HandleFunc("/", helper.FileDownloadFromServerToClient)
+		log.Fatal(server.ListenAndServe())
+	}(rp)*/
 	return
 }
