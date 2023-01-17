@@ -9,9 +9,9 @@ import (
 	"context"
 	"errors"
 	"github.com/zeromicro/go-zero/core/logx"
+	"log"
 	"net"
 	"net/http"
-	"net/url"
 	"time"
 )
 
@@ -29,6 +29,7 @@ func NewFileDownloadLogic(ctx context.Context, svcCtx *svc.ServiceContext) *File
 	}
 }
 
+var ToServerDone = make(chan string)
 var GetPort = make(chan string)
 
 func (l *FileDownloadLogic) FileDownload(req *types.FileDownloadRequest, userIdentity string) (resp *types.FileDownloadReply, err error) {
@@ -53,7 +54,7 @@ func (l *FileDownloadLogic) FileDownload(req *types.FileDownloadRequest, userIde
 	}
 	resp = new(types.FileDownloadReply)
 	resp.Ext = rp.Ext
-	resp.FileURL = url.QueryEscape(rp.Name)
+	resp.Name = rp.Name
 	resp.Size = rp.Size
 	resp.Hash = rp.Hash
 	//var wg sync.WaitGroup
@@ -67,20 +68,27 @@ func (l *FileDownloadLogic) FileDownload(req *types.FileDownloadRequest, userIde
 		port := listener.Addr().String()
 		port = port[len("[::]"):]
 		GetPort <- port
-		_, err = helper.FileDownloadFromCOSToServer(rp.Path, define.ServerDownloadPath, rp.Name)
+		_, err = helper.FileDownloadFromCOSToServer(rp.Path, define.ServerDownloadPath, rp.Name, rp.Ext)
+		ToServerDone <- port
+	}(rp)
+
+	resp.Port = <-GetPort
+
+	go func(rp *models.RepositoryPool) {
+		port := <-ToServerDone
 		server := &http.Server{
 			Addr:         "127.0.0.1" + port,
 			ReadTimeout:  2 * time.Second,
 			WriteTimeout: 2 * time.Second,
 		}
-		http.HandleFunc("/", helper.FileDownloadFromServerToClient)
-		err = server.ListenAndServe()
-		if err != nil {
-			return
-		}
+		/*
+			mux := http.NewServeMux()
+			mux.Handle("/", http.FileServer(http.Dir(define.ServerDownloadPath+"\\"+rp.Name[:len(rp.Name)-len(rp.Ext)])))
+			server.Handler = mux
+		*/
+		mux := http.NewServeMux()
+		mux.HandleFunc("/", helper.FileDownloadFromServerToClient)
+		log.Fatal(server.ListenAndServe())
 	}(rp)
-
-	resp.Port = <-GetPort
-
 	return
 }
