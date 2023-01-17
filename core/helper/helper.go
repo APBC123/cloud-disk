@@ -227,9 +227,12 @@ func FileDownloadFromServerToClient(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(err.Error()))
 		return
 	}
-
-	mtx.Lock()
+	cond.L.Lock()
 	f, err := os.Open(define.ServerDownloadPath + "\\" + Url) //
+	for err != nil {
+		cond.Wait()
+		_, err = os.Open(define.ServerDownloadPath + "\\" + Url)
+	}
 	if err != nil {
 		w.Write([]byte(err.Error()))
 		return
@@ -240,20 +243,31 @@ func FileDownloadFromServerToClient(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(err.Error()))
 		return
 	}
-	mtx.Unlock()
+	cond.L.Unlock()
+	cond.Signal()
 
 	w.Header().Set("Content-Disposition", "attachment; filename="+filename)
 	w.Header().Set("Content-Type", "application/octet-stream")
 	w.Header().Set("Content-Length", strconv.FormatInt(info.Size(), 10))
 
-	mtx.Lock()
-	f.Seek(0, 0)
-	io.Copy(w, f)
-	mtx.Unlock()
+	cond.L.Lock()
+	_, err = f.Seek(0, 0)
+	for err != nil {
+		cond.Wait()
+		_, err = f.Seek(0, 0)
+	}
+
+	_, err = io.Copy(w, f)
+	for err != nil {
+		cond.Wait()
+		_, err = io.Copy(w, f)
+	}
+	cond.L.Unlock()
+	cond.Signal()
 
 }
 
-var mtx sync.Mutex
+var cond = sync.NewCond(&sync.Mutex{})
 
 func Download(rp *models.RepositoryPool, port string) {
 	listener, err := net.Listen("tcp", port)
