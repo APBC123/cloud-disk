@@ -255,7 +255,7 @@ func Download(rp *models.RepositoryPool, port string) {
 		return
 	}
 	defer listener.Close()
-	_, err = FileDownloadFromCOSToServer(rp.Path, define.ServerDownloadPath, rp.Ext)
+	_, err = FileDownloadFromCOSToServer(rp.Path, define.ServerDownloadPath, rp.Name)
 	server := &http.Server{
 		Addr:         "127.0.0.1" + port,
 		ReadTimeout:  4800 * time.Second,
