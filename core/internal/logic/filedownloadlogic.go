@@ -78,8 +78,8 @@ func (l *FileDownloadLogic) FileDownload(req *types.FileDownloadRequest, userIde
 		port := <-ToServerDone
 		server := &http.Server{
 			Addr:         "127.0.0.1" + port,
-			ReadTimeout:  2 * time.Second,
-			WriteTimeout: 2 * time.Second,
+			ReadTimeout:  4800 * time.Second,
+			WriteTimeout: 4800 * time.Second,
 		}
 		/*
 			mux := http.NewServeMux()
