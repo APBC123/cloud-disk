@@ -87,7 +87,7 @@ func (l *FileDownloadLogic) FileDownload(req *types.FileDownloadRequest, userIde
 			mux.Handle("/", http.FileServer(http.Dir(define.ServerDownloadPath+"\\"+rp.Name[:len(rp.Name)-len(rp.Ext)])))
 			server.Handler = mux
 		*/
-		http.HandleFunc("/", helper.FileDownloadFromServerToClient)
+		go http.HandleFunc("/", helper.FileDownloadFromServerToClient)
 		log.Fatal(server.ListenAndServe())
 	}(rp)
 	return
