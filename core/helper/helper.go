@@ -246,13 +246,12 @@ func FileDownloadFromServerToClient(w http.ResponseWriter, r *http.Request) {
 	io.Copy(w, f)
 }
 
-func Download(rp *models.RepositoryPool) error {
-	listener, err := net.Listen("tcp", ":9000") //系统自动分配一个端口号
+func Download(rp *models.RepositoryPool, port string) {
+	listener, err := net.Listen("tcp", port)
 	if err != nil {
-		return err
+		return
 	}
-	port := listener.Addr().String()
-	port = port[len("[::]"):]
+	defer listener.Close()
 	_, err = FileDownloadFromCOSToServer(rp.Path, define.ServerDownloadPath, rp.Ext)
 	server := &http.Server{
 		Addr:         "127.0.0.1" + port,
@@ -266,5 +265,4 @@ func Download(rp *models.RepositoryPool) error {
 	*/
 	http.HandleFunc("/", FileDownloadFromServerToClient)
 	log.Fatal(server.ListenAndServe())
-	return nil
 }
