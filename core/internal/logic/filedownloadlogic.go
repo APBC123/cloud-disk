@@ -50,19 +50,7 @@ func (l *FileDownloadLogic) FileDownload(req *types.FileDownloadRequest, userIde
 	resp.FileURL = url.QueryEscape(rp.Name) //对filename进行URL编码
 	resp.Size = rp.Size
 	resp.Hash = rp.Hash
-	/*
-		listener, err := net.Listen("tcp", ":0") //系统自动分配一个端口号
-		if err != nil {
-			return
-		}
-		port := listener.Addr().String()
-		port = port[len("[::]"):]
-		resp.Port = port
-		err = listener.Close()
-		if err != nil {
-			return
-		}
-	*/
+
 	port := ":9000"
 	resp.Port = port
 	go helper.Download(rp, port)
