@@ -277,8 +277,8 @@ func Download(rp *models.RepositoryPool, port string) {
 	_, err = FileDownloadFromCOSToServer(rp.Path, define.ServerDownloadPath, rp.Name)
 	server := &http.Server{
 		Addr:         "127.0.0.1" + port,
-		ReadTimeout:  4800 * time.Second,
-		WriteTimeout: 4800 * time.Second,
+		ReadTimeout:  3 * time.Duration(rp.Size) * time.Microsecond, //服务开启时间限制约为1G/h
+		WriteTimeout: 3 * time.Duration(rp.Size) * time.Microsecond,
 	}
 	/*
 		mux := http.NewServeMux()
