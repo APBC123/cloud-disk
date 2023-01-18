@@ -252,20 +252,18 @@ func FileDownloadFromServerToClient(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/octet-stream")
 	w.Header().Set("Content-Length", strconv.FormatInt(info.Size(), 10))
 
-	cond.L.Lock()
 	_, err = f.Seek(0, 0)
-	for err != nil {
-		cond.Wait()
-		_, err = f.Seek(0, 0)
+	if err != nil {
+		errors.New("seek Failed")
 	}
-
-	_, err = io.Copy(w, f)
-	for err != nil {
-		cond.Wait()
-		_, err = io.Copy(w, f)
-	}
+	cond.L.Lock()
+	buf := make([]byte, 1024*1024)
 	cond.L.Unlock()
-	cond.Broadcast()
+	_, err = io.CopyBuffer(w, f, buf)
+	if err != nil {
+
+	}
+	//io.Copy(w, f)
 
 }
 
