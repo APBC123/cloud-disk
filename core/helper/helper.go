@@ -233,7 +233,7 @@ func FileDownloadFromServerToClient(w http.ResponseWriter, r *http.Request) {
 	f, err := os.Open(define.ServerDownloadPath + "\\" + Url) //
 	for err != nil {
 		cond.Wait()
-		_, err = os.Open(define.ServerDownloadPath + "\\" + Url)
+		f, err = os.Open(define.ServerDownloadPath + "\\" + Url)
 	}
 	if err != nil {
 		w.Write([]byte(err.Error()))
