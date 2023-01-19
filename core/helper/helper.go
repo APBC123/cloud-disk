@@ -256,7 +256,7 @@ func FileDownloadFromServerToClient(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		errors.New("seek Failed")
 	}
-	buf := make([]byte, 1024*1024)
+	buf := make([]byte, 1024)
 	_, err = io.CopyBuffer(w, f, buf)
 	if err != nil {
 
