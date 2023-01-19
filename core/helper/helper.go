@@ -280,11 +280,6 @@ func Download(rp *models.RepositoryPool, port string) {
 		ReadTimeout:  3 * time.Duration(rp.Size) * time.Microsecond, //服务开启时间限制约为1G/h
 		WriteTimeout: 3 * time.Duration(rp.Size) * time.Microsecond,
 	}
-	/*
-		mux := http.NewServeMux()
-		mux.Handle("/", http.FileServer(http.Dir(define.ServerDownloadPath+"\\"+rp.Name[:len(rp.Name)-len(rp.Ext)])))
-		server.Handler = mux
-	*/
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", FileDownloadFromServerToClient)
 	server.Handler = mux
