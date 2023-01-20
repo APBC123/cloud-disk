@@ -37,6 +37,8 @@ require (
 	github.com/google/pprof v0.0.0-20211214055906-6f57359322fd // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.7.0 // indirect
+	github.com/jinzhu/inflection v1.0.0 // indirect
+	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/mattn/go-colorable v0.1.9 // indirect
@@ -73,5 +75,6 @@ require (
 	google.golang.org/grpc v1.50.1 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
+	gorm.io/gorm v1.24.3 // indirect
 	xorm.io/builder v0.3.12 // indirect
 )

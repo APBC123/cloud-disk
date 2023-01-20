@@ -55,6 +55,6 @@ func (l *FileDownloadLogic) FileDownload(req *types.FileDownloadRequest, userIde
 	port := ":9000"
 	resp.Port = port
 	go helper.Download(rp, port, resp.DownloadIndex)
-
+	//下载需访问的URI示例：127.0.0.1:9000/DownloadIndex/FileURL
 	return
 }
