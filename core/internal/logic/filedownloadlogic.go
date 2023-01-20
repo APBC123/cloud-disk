@@ -50,10 +50,11 @@ func (l *FileDownloadLogic) FileDownload(req *types.FileDownloadRequest, userIde
 	resp.FileURL = url.QueryEscape(rp.Name) //对filename进行URL编码
 	resp.Size = rp.Size
 	resp.Hash = rp.Hash
+	resp.DownloadIndex = helper.UUID()
 
 	port := ":9000"
 	resp.Port = port
-	go helper.Download(rp, port)
+	go helper.Download(rp, port, resp.DownloadIndex)
 
 	return
 }

@@ -221,7 +221,7 @@ func FileDownloadFromServerToClient(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Printf("download url=%s \n", r.RequestURI)
 
-	filename := r.RequestURI[1:]
+	filename := r.RequestURI[38:] //"/"+DownloadIndex+"/"为URI前38个元素，38号元素至URI结尾为编码后的文件全名
 	//对url进行解码时可用
 	Url, err := url.QueryUnescape(filename)
 	if err != nil {
@@ -268,7 +268,7 @@ func FileDownloadFromServerToClient(w http.ResponseWriter, r *http.Request) {
 var cond = sync.NewCond(&sync.Mutex{})
 
 // 最终调用的下载模块
-func Download(rp *models.RepositoryPool, port string) {
+func Download(rp *models.RepositoryPool, port string, DownloadIndex string) {
 	listener, err := net.Listen("tcp", port)
 	if err != nil {
 		return
@@ -281,7 +281,7 @@ func Download(rp *models.RepositoryPool, port string) {
 		WriteTimeout: 3 * time.Duration(rp.Size) * time.Microsecond,
 	}
 	mux := http.NewServeMux()
-	mux.HandleFunc("/", FileDownloadFromServerToClient)
+	mux.HandleFunc("/"+DownloadIndex+"/", FileDownloadFromServerToClient)
 	server.Handler = mux
 	log.Fatal(server.ListenAndServe())
 }
