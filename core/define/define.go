@@ -29,7 +29,7 @@ var CosBucket = "https://2290312980-1316376654.cos.ap-nanjing.myqcloud.com"
 
 // 分页的默认参数
 var PageSize = 20
-
+var NewVolume int64 = 1000000000
 var Datetime = "2006-01-01 15:05:05"
 
 var TokenExpireTime = 3600

@@ -1,6 +1,7 @@
 package logic
 
 import (
+	"cloud-disk/core/define"
 	"cloud-disk/core/helper"
 	"cloud-disk/core/internal/svc"
 	"cloud-disk/core/internal/types"
@@ -44,10 +45,12 @@ func (l *UserRegisterLogic) UserRegister(req *types.UserRegisterRequest) (resp *
 	}
 	//数据入库
 	user := &models.UserBasic{
-		Name:     req.Name,
-		Password: helper.Md5(req.Password),
-		Email:    req.Email,
-		Identity: helper.UUID(),
+		Name:        req.Name,
+		Password:    helper.Md5(req.Password),
+		Email:       req.Email,
+		Identity:    helper.UUID(),
+		NowVolume:   define.NewVolume,
+		TotalVolume: define.NewVolume,
 	}
 	n, err := l.svcCtx.Engine.Insert(user)
 	if err != nil {
