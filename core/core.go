@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"net/http"
 
 	"cloud-disk/core/internal/config"
 	"cloud-disk/core/internal/handler"
@@ -20,7 +21,7 @@ func main() {
 	var c config.Config
 	conf.MustLoad(*configFile, &c)
 
-	server := rest.MustNewServer(c.RestConf)
+	server := rest.MustNewServer(c.RestConf, rest.WithCors("*"))
 	defer server.Stop()
 
 	ctx := svc.NewServiceContext(c)
@@ -28,4 +29,8 @@ func main() {
 
 	fmt.Printf("Starting server at %s:%d...\n", c.Host, c.Port)
 	server.Start()
+}
+
+func notAllowedFn(w http.ResponseWriter) {
+	w.Header().Add("Access-Control-Allow-Headers", "x-token")
 }
