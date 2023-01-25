@@ -70,7 +70,7 @@ func AnalyzeToken(token string) (*define.UserClaim, error) {
 // 邮箱验证码发送
 func MailSendCode(mail, code string) error {
 	e := email.NewEmail()
-	e.From = "Get <2290312980@qq.com>"
+	e.From = "Cloud-disk <2290312980@qq.com>"
 	e.To = []string{mail}
 	e.Subject = "验证码发送测试"
 	e.HTML = []byte("您的验证码为：<h1>" + code + "</h1>")
