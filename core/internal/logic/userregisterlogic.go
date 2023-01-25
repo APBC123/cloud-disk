@@ -45,7 +45,7 @@ func (l *UserRegisterLogic) UserRegister(req *types.UserRegisterRequest) (resp *
 	//数据入库
 	user := &models.UserBasic{
 		Name:     req.Name,
-		Password: req.Password,
+		Password: helper.Md5(req.Password),
 		Email:    req.Email,
 		Identity: helper.UUID(),
 	}
