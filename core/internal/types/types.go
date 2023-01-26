@@ -162,6 +162,7 @@ type LoginRequest struct {
 type LoginReply struct {
 	Token        string `json:"token"`
 	RefreshToken string `json:"refresh_token"`
+	Identity     string `json:"identity"`
 }
 
 type UserDetailRequest struct {
