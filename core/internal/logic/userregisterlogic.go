@@ -51,6 +51,7 @@ func (l *UserRegisterLogic) UserRegister(req *types.UserRegisterRequest) (resp *
 		Identity:    helper.UUID(),
 		NowVolume:   define.NewVolume,
 		TotalVolume: define.NewVolume,
+		//
 	}
 	n, err := l.svcCtx.Engine.Insert(user)
 	if err != nil {
