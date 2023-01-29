@@ -220,6 +220,13 @@ func FileDownloadFromCOSToServer(COSResourcePath, ServerDownloadPath, FileName s
 func FileDownloadFromServerToClient(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Printf("download url=%s \n", r.RequestURI)
+	/*
+		if strings.Compare(Index, r.RequestURI[1:37]) != 0 {
+			w.Write([]byte("此文件不属于当前用户"))
+			return
+		}
+		Index = ""
+	*/
 
 	filename := r.RequestURI[38:] //"/"+DownloadIndex+"/"为URI前38个元素，38号元素至URI结尾为编码后的文件全名
 	//对url进行解码时可用
@@ -229,7 +236,7 @@ func FileDownloadFromServerToClient(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cond.L.Lock()
+	//cond.L.Lock()
 	f, err := os.Open(define.ServerDownloadPath + "\\" + Url) //
 	for err != nil {
 		cond.Wait()
@@ -245,7 +252,7 @@ func FileDownloadFromServerToClient(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(err.Error()))
 		return
 	}
-	cond.L.Unlock()
+	//cond.L.Unlock()
 	cond.Broadcast()
 
 	w.Header().Set("Content-Disposition", "attachment; filename="+filename)
@@ -273,6 +280,7 @@ func Download(rp *models.RepositoryPool, port string, DownloadIndex string) {
 	if err != nil {
 		return
 	}
+
 	defer listener.Close()
 	_, err = FileDownloadFromCOSToServer(rp.Path, define.ServerDownloadPath, rp.Name)
 	server := &http.Server{
@@ -281,7 +289,7 @@ func Download(rp *models.RepositoryPool, port string, DownloadIndex string) {
 		WriteTimeout: 3 * time.Duration(rp.Size) * time.Microsecond,
 	}
 	mux := http.NewServeMux()
-	mux.HandleFunc("/"+DownloadIndex+"/", FileDownloadFromServerToClient)
+	mux.HandleFunc("/", FileDownloadFromServerToClient)
 	server.Handler = mux
 	log.Fatal(server.ListenAndServe())
 }
