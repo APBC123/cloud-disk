@@ -220,13 +220,6 @@ func FileDownloadFromCOSToServer(COSResourcePath, ServerDownloadPath, FileName s
 func FileDownloadFromServerToClient(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Printf("download url=%s \n", r.RequestURI)
-	/*
-		if strings.Compare(Index, r.RequestURI[1:37]) != 0 {
-			w.Write([]byte("此文件不属于当前用户"))
-			return
-		}
-		Index = ""
-	*/
 
 	filename := r.RequestURI[38:] //"/"+DownloadIndex+"/"为URI前38个元素，38号元素至URI结尾为编码后的文件全名
 	//对url进行解码时可用
