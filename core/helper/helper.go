@@ -229,8 +229,10 @@ func FileDownloadFromServerToClient(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//cond.L.Lock()
 	f, err := os.Open(define.ServerDownloadPath + "\\" + Url) //
 	for err != nil {
+		cond.Wait()
 		f, err = os.Open(define.ServerDownloadPath + "\\" + Url)
 	}
 	if err != nil {
@@ -243,6 +245,8 @@ func FileDownloadFromServerToClient(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(err.Error()))
 		return
 	}
+	//cond.L.Unlock()
+	cond.Broadcast()
 
 	w.Header().Set("Content-Disposition", "attachment; filename="+filename)
 	w.Header().Set("Content-Type", "application/octet-stream")
